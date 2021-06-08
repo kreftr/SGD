@@ -53,6 +53,21 @@ public:
 
 }
 
+    bool is_inside(int pos_x, int pos_y, int rad, int x, int y){
+        if(pow((x - pos_x),2) + pow(y - pos_y,2) <= pow(rad,2)) return true;
+        else return false;
+    }
+
+    void modify_terrain(coordinate pos, int size){
+        for(int i = 0; i < terrain_model.size(); i++){
+            if(is_inside(pos.x, pos.y, size, terrain_model.at(i).x,terrain_model.at(i).y)){
+                terrain_model[i] = terrain_model.back();
+                terrain_model.pop_back();
+                i--;
+            }
+        }
+    }
+
     void draw(SDL_Renderer *renderer){
         SDL_SetRenderDrawColor(renderer, 242, 209, 107, 255);
         for(int i = 0; i < terrain_model.size(); i++){

@@ -56,6 +56,8 @@ int main(int , char **) {
   std::vector<Bullet> bullets;
  
   bool is_not_falling = true;
+  int bullet_power [5] = {3, 5, 10, 15, 20};
+  int bullet_index = 0;
 
 
   steady_clock::time_point current_time = steady_clock::now(); // remember current time
@@ -86,8 +88,15 @@ int main(int , char **) {
           case SDL_SCANCODE_DOWN:
             tank.barrel_down();
             break;
+          case SDL_SCANCODE_F:
+            if(bullet_index + 1 <= 4){
+              bullet_index++;
+              system("clear");
+              cout<<"Bullet power: "<<bullet_power[bullet_index]<<endl;
+            }else bullet_index = 0;
+          break;
           case SDL_SCANCODE_SPACE:
-            bullets.push_back(Bullet(tank.barrel_position, tank.angle));
+            bullets.push_back(Bullet(tank.barrel_position, tank.angle, bullet_power[bullet_index]));
             break;
           default:
             break;
@@ -99,18 +108,26 @@ int main(int , char **) {
     }
     
     is_not_falling = tank.gravity(terrain.terrain_model);
-    
-    if(bullets.size() > 0){
-      int size = bullets.size();
-      for(int i=0; i < size; i++){
-        // if((bullets.at(i).position.x > 640 || bullets.at(i).position.x < 0) || (bullets.at(i).position.y > 480 || bullets.at(i).position.y < 0)){
-        //   bullets.erase(bullets.begin()+i);
-        //   size--;
-        //   if(size == 0) break;
-        // }
-        bullets.at(i).draw(renderer);
+
+
+
+    for(int i = 0; i < bullets.size(); i++){
+
+      if(bullets.at(i).touched_groud(terrain.terrain_model)){
+        terrain.modify_terrain(bullets.at(i).position, bullets.at(i).power);
+        bullets[i] = bullets.back();
+        bullets.pop_back();
+        i--;
       }
+      else if(bullets.at(i).is_out_of_boundaries()){
+        bullets[i] = bullets.back();
+        bullets.pop_back();
+        i--;
+      }
+      else bullets.at(i).draw(renderer);
+
     }
+
 
     terrain.draw(renderer);
     tank.draw(renderer);

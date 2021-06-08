@@ -2,6 +2,8 @@
 #include <vector>
 #include <cmath>
 
+#define PI 3.14159265
+
 float distance(coordinate a, coordinate b)
 {
     return sqrt(pow(a.x - b.x, 2) +
@@ -105,11 +107,11 @@ public:
     }
 
     void barrel_up(){
-        angle = angle - 0.2;
+        angle = angle - 10;
     }
 
     void barrel_down(){
-        angle = angle + 0.2;
+        angle = angle + 10;
     }
 
     bool gravity(std::vector<coordinate> terrain){
@@ -135,7 +137,7 @@ public:
         
         SDL_SetRenderDrawColor(renderer, 105, 105, 105, 255);
         SDL_RenderDrawLine(renderer, barrel_position.x, barrel_position.y,
-         cos(angle)*barrel_length + barrel_position.x, sin(angle)*barrel_length + barrel_position.y);
+         cos(angle*PI/180)*barrel_length + barrel_position.x, sin(angle*PI/180)*barrel_length + barrel_position.y);
     }
 
 };
