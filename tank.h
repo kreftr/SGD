@@ -16,6 +16,7 @@ class Tank {
 public:
     coordinate position;
     std::vector<coordinate> tank_model;
+    int health = 100;
 
     coordinate barrel_position;
     double angle = 0.0;
@@ -54,15 +55,17 @@ public:
             if((position.x + 1 == terrain_model.at(i).x) && position.y >= terrain_model.at(i).y) elevation++;
         }
 
-        move_up(elevation);
+        if (elevation < 12){
+            move_up(elevation);
 
-        for(int i = 0; i < tank_model.size(); i++){
-            c.x = tank_model.at(i).x + 1;
-            c.y = tank_model.at(i).y;
-            tank_model.at(i) = c;
+            for(int i = 0; i < tank_model.size(); i++){
+                c.x = tank_model.at(i).x + 1;
+                c.y = tank_model.at(i).y;
+                tank_model.at(i) = c;
+            }
+            position.x++;
+            barrel_position.x++;
         }
-        position.x++;
-        barrel_position.x++;
     }
 
     void move_left(std::vector<coordinate> terrain_model){
@@ -73,15 +76,17 @@ public:
             if((position.x - 1 == terrain_model.at(i).x) && position.y >= terrain_model.at(i).y) elevation++;
         }
 
-        move_up(elevation);
+        if(elevation < 12){
+            move_up(elevation);
 
-        for(int i = 0; i < tank_model.size(); i++){
-            c.x = tank_model.at(i).x - 1;
-            c.y = tank_model.at(i).y;
-            tank_model.at(i) = c;
+            for(int i = 0; i < tank_model.size(); i++){
+                c.x = tank_model.at(i).x - 1;
+                c.y = tank_model.at(i).y;
+                tank_model.at(i) = c;
+            }
+            position.x--;
+            barrel_position.x--;
         }
-        position.x--;
-        barrel_position.x--;
     }
 
     void move_down(){

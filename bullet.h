@@ -15,8 +15,9 @@ public:
     float time = 0;
     float g = 9.8;
     int power;
+    float gun_power;
 
-    Bullet(coordinate pos, double a, int p){
+    Bullet(coordinate pos, double a, int p, float g_power){
         position.x = pos.x + cos(a*PI/180)*5;
         position.y = pos.y + sin(a*PI/180)*5;
         angle = a;
@@ -24,13 +25,14 @@ public:
         vx = velocity * cos(angle*PI/180);
         vy = velocity * sin(angle*PI/180);
         power = p;
+        gun_power = g_power;
     }
 
 
     void draw(SDL_Renderer *renderer){
         
-        position.x += cos(angle*PI/180) * 5;
-        position.y += (0.5 * g * time * time + velocity * sin(angle*PI/180) * time*0.05); 
+        position.x += cos(angle*PI/180) * 5 * gun_power;
+        position.y += (0.5 * g * time * time + velocity * sin(angle*PI/180) * time*0.05) * gun_power; 
         
         time = time + 0.015;
         
