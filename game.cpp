@@ -50,6 +50,7 @@ int main(int , char **) {
 
   milliseconds dt(15);
 
+  // Załadowanie obrazka wybuchu
   SDL_Surface* surface = IMG_Load("explosion.png"); 
   SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface); 
   SDL_FreeSurface(surface);
@@ -57,18 +58,23 @@ int main(int , char **) {
   img_destination.h = 50;
   img_destination.w = 50;
 
+  //Utworzenie terenu, gracza, paska siły i tablicy na pociski
   Terrain terrain;
-  Tank tank(100, 250);
+  Tank tank(100, 250, 255, 0, 0);
+  Tank tank2(400, 250, 0, 0, 255);
   PowerBar power_bar(width, 60, 30);
   std::vector<Bullet> bullets;
   terrain.generate_model();
   tank.spawn();
+  tank2.spawn();
   
-  bool is_not_falling = true;
+  bool first_player_is_not_falling = true;
+  bool second_player_is_not_falling = true;
   bool draw_power_bar = false;
   bool explosion = false;
+  bool first_player_turn = true;
 
-  const int bullet_power [4] = {5, 10, 15, 20};
+  const int bullet_power [5] = {5, 10, 15, 20, 100};
   int bullet_index = 0;
   float gun_power = 1;
   int counter = 0;
@@ -79,29 +85,32 @@ int main(int , char **) {
 
     SDL_RenderClear(renderer);
 
-    
 
     while (SDL_PollEvent(&event)) {
       
       if (event.type == SDL_QUIT) game_active = false;
-
-      if(is_not_falling){
+      //sterowanie
+      if(first_player_is_not_falling && second_player_is_not_falling && bullets.size() == 0){
         if(event.type == SDL_KEYDOWN){
           switch (event.key.keysym.scancode){
             case SDL_SCANCODE_RIGHT:
-              tank.move_right(terrain.terrain_model);
+              if(first_player_turn) tank.move_right(terrain.terrain_model);
+              else tank2.move_right(terrain.terrain_model);
               break;
             case SDL_SCANCODE_LEFT:
-              tank.move_left(terrain.terrain_model);
+              if(first_player_turn) tank.move_left(terrain.terrain_model);
+              else tank2.move_left(terrain.terrain_model);
               break;
             case SDL_SCANCODE_UP:
-              tank.barrel_up();
+              if(first_player_turn) tank.barrel_up();
+              else tank2.barrel_up();
               break;
             case SDL_SCANCODE_DOWN:
-              tank.barrel_down();
+              if(first_player_turn) tank.barrel_down();
+              else tank2.barrel_down();
               break;
             case SDL_SCANCODE_F:
-              if(bullet_index + 1 <= 3){
+              if(bullet_index + 1 <= 4){
                 bullet_index++;
               }else bullet_index = 0;
               system("clear");
@@ -120,11 +129,13 @@ int main(int , char **) {
         }else if (event.type == SDL_KEYUP){
           switch (event.key.keysym.scancode){
             case SDL_SCANCODE_SPACE:
-              bullets.push_back(Bullet(tank.barrel_position, tank.angle, bullet_power[bullet_index], gun_power));
-              cout<<gun_power<<endl;
+              if(first_player_turn) bullets.push_back(Bullet(tank.barrel_position, tank.angle, bullet_power[bullet_index], gun_power));
+              else bullets.push_back(Bullet(tank2.barrel_position, tank2.angle, bullet_power[bullet_index], gun_power));
               power_bar.reset_pointer();
               draw_power_bar = false;
               gun_power = 0;
+              if(first_player_turn) first_player_turn = false;
+              else first_player_turn = true;
               break;
             default:
               break;
@@ -135,10 +146,10 @@ int main(int , char **) {
 
     }
     
-    is_not_falling = tank.gravity(terrain.terrain_model);
+    first_player_is_not_falling = tank.gravity(terrain.terrain_model);
+    second_player_is_not_falling = tank2.gravity(terrain.terrain_model);
 
-
-
+    //obsługa pocisków, animacji wybuchu, niszczenia
     for(int i = 0; i < bullets.size(); i++){
 
       if(bullets.at(i).touched_groud(terrain.terrain_model)){
@@ -146,25 +157,24 @@ int main(int , char **) {
         img_destination.y = bullets.at(i).position.y - img_destination.h/2;
         switch (bullets.at(i).power)
         {
-        case 3:
-          img_destination.h = 20;
-          img_destination.w = 20;
-          break;
         case 5:
-          img_destination.h = 25;
-          img_destination.w = 25;
-          break;
-        case 10:
           img_destination.h = 30;
           img_destination.w = 30;
           break;
-        case 15:
-          img_destination.h = 35;
-          img_destination.w = 35;
-          break;
-        case 20:
+        case 10:
           img_destination.h = 40;
           img_destination.w = 40;
+          break;
+        case 15:
+          img_destination.h = 50;
+          img_destination.w = 50;
+          break;
+        case 20:
+          img_destination.h = 60;
+          img_destination.w = 60;
+        case 100:
+          img_destination.h = 100;
+          img_destination.w = 100;
           break;
         default:
           break;
@@ -173,8 +183,19 @@ int main(int , char **) {
         terrain.modify_terrain(bullets.at(i).position, bullets.at(i).power);
         if(terrain.is_inside(bullets.at(i).position.x, bullets.at(i).position.y, bullets.at(i).power, tank.position.x, tank.position.y)){
           tank.health = tank.health - bullets.at(i).power;
-          cout<<"Health: "<<tank.health<<endl;
-          if(tank.health <= 0) game_active = false;
+          cout<<"Player 1 health: "<<tank.health<<endl;
+          if(tank.health <= 0){
+            game_active = false;
+            cout<<"Player 2 wins"<<endl;
+          }
+        }
+        else if(terrain.is_inside(bullets.at(i).position.x, bullets.at(i).position.y, bullets.at(i).power, tank2.position.x, tank2.position.y)){
+          tank2.health = tank2.health - bullets.at(i).power;
+          cout<<"Player 2 health: "<<tank2.health<<endl;
+          if(tank2.health <= 0){
+            game_active = false;
+            cout<<"Player 1 wins"<<endl;
+          }
         }
         bullets[i] = bullets.back();
         bullets.pop_back();
@@ -193,6 +214,7 @@ int main(int , char **) {
     if(draw_power_bar) power_bar.draw(renderer);
     terrain.draw(renderer);
     tank.draw(renderer);
+    tank2.draw(renderer);
     
     SDL_SetRenderDrawColor(renderer, 138, 183, 248, 255);
     if(explosion){
@@ -210,6 +232,7 @@ int main(int , char **) {
     SDL_RenderPresent(renderer);
     this_thread::sleep_until(current_time = current_time + dt);
   }
+  SDL_DestroyTexture(texture);
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
   SDL_Quit();

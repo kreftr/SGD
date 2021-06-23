@@ -22,14 +22,18 @@ public:
     double angle = 0.0;
     int barrel_length = 8;
 
-    Tank(int x, int y){
+    Tank(int x, int y, int red, int green, int blue){
         position.x = x;
         position.y = y;
+        position.r = red;
+        position.g = green;
+        position.b = blue;
     }
 
     
     void spawn(){
         coordinate c;
+
         for(int h = 0; h < 4; h++){                                                 
             for(int w_r = 0; w_r < 3; w_r++){
                 c.x = position.x + w_r;
@@ -55,7 +59,7 @@ public:
             if((position.x + 1 == terrain_model.at(i).x) && position.y >= terrain_model.at(i).y) elevation++;
         }
 
-        if (elevation < 12){
+        if (elevation < 20){
             move_up(elevation);
 
             for(int i = 0; i < tank_model.size(); i++){
@@ -76,7 +80,7 @@ public:
             if((position.x - 1 == terrain_model.at(i).x) && position.y >= terrain_model.at(i).y) elevation++;
         }
 
-        if(elevation < 12){
+        if(elevation < 20){
             move_up(elevation);
 
             for(int i = 0; i < tank_model.size(); i++){
@@ -135,7 +139,7 @@ public:
     }
 
     void draw(SDL_Renderer *renderer){
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_SetRenderDrawColor(renderer, position.r, position.g, position.b, 255);
         for(int i = 0; i < tank_model.size(); i++){
             SDL_RenderDrawPoint(renderer, tank_model.at(i).x, tank_model.at(i).y);
         }
